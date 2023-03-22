@@ -1,0 +1,12 @@
+// Copia la configuración de tu proyecto de firebase https://console.firebase.google.com
+
+export const firebaseConfig = {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+
+
