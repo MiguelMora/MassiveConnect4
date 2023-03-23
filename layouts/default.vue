@@ -52,9 +52,9 @@ export default {
         to: '/inspire',
       },
       {
-        icon: 'mdi-chart-bubble',
-        title: 'Users',
-        to: '/users',
+        icon: 'gamepad-variant-outline',
+        title: 'Games',
+        to: '/games',
       },
     ],
   }),
