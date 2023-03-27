@@ -1,6 +1,14 @@
 import { defineStore } from 'pinia'
-import { collection, where, query, onSnapshot } from 'firebase/firestore'
+import {
+  collection,
+  where,
+  query,
+  onSnapshot,
+  addDoc,
+  serverTimestamp,
+} from 'firebase/firestore'
 import { getDb } from '~/services/firestore'
+import { useUserStore } from '~/stores/user'
 
 export const useGamesStore = defineStore('games', {
   state: () => ({
@@ -8,7 +16,13 @@ export const useGamesStore = defineStore('games', {
     games: {}, // { id: game }
   }),
   getters: {
-    asArray() { // incluye el id en el documento, y devuelve el array
+    uid: () => {
+      const userStore = useUserStore()
+      const uid = userStore.uid
+      return uid
+    },
+    asArray() {
+      // incluye el id en el documento, y devuelve el array
       return Object.keys(this.games).map((id) => ({ id, ...this.games[id] }))
     },
   },
@@ -37,6 +51,27 @@ export const useGamesStore = defineStore('games', {
         this.subscribed()
         this.subscribed = null
       }
+    },
+    async createGame(name) {
+      const col = collection(getDb(), 'games')
+      const ref = await addDoc(col, {
+        name,
+        created: serverTimestamp(),
+        turn: 0,
+        running: true,
+        turns: {
+          0: {
+            leader: this.uid,
+            changes: {
+              [this.uid]: 1,
+            },
+            votes: {},
+            traitors: [],
+            selected: null,
+          },
+        },
+      })
+      return ref.id
     },
   },
 })

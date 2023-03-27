@@ -3,8 +3,11 @@ import { onSnapshot, doc, updateDoc, arrayUnion } from 'firebase/firestore'
 
 import { useUserStore } from '~/stores/user'
 import { getDb } from '~/services/firestore'
+
 export const useGameStore = defineStore('game', {
   state: () => ({
+    nCols: 6,
+    nRows: 6,
     gameID: null,
     subscribed: null, // función para de-subscribirse
     game: {
@@ -34,10 +37,10 @@ export const useGameStore = defineStore('game', {
     },
   }),
   getters: {
-    gameRef: (state) => {
-      return doc(getDb(), 'games', state.gameID)
-    },
-    teams: (state) => {
+    // Nota: No se puede usar this en funciones lambda (=>)
+    gameRef: (state) =>
+      state.gameID ? doc(getDb(), 'games', state.gameID) : null,
+    teams(state) {
       // pares jugador, equipo (-1 si abandonó)
       const result = {}
       for (let i = 0; i <= state.game.turn; ++i) {
@@ -48,37 +51,77 @@ export const useGameStore = defineStore('game', {
       }
       return result
     },
-    players: () => {
+    players() {
       return Object.keys(this.teams)
     },
     turnData: (state) => state.game.turns[state.game.turn],
-    leader: () => this.turnData.leader,
-    uid: () => {
-      const userStore = useUserStore()
-      const uid = userStore.uid
-      return uid
+    leader() {
+      return this.turnData.leader
     },
-    isLeader: () => this.leader === this.uid,
-    inGame: () =>
-      this.players.includes(this.uid) ||
-      this.game.newPlayers.includes(this.uid),
-    myTeam: () => (this.players.includes(this.uid) ? this.teams[this.uid] : 0),
+    uid: () => useUserStore().uid,
+    isLeader() {
+      return this.leader === this.uid
+    },
+    inGame() {
+      return (
+        this.players.includes(this.uid) ||
+        this.game.newPlayers.includes(this.uid)
+      )
+    },
+    myTeam() {
+      return this.players.includes(this.uid) ? this.teams[this.uid] : 0
+    },
     teamTurn: (state) => (state.game.running ? (state.game.turn % 2) + 1 : 0),
-    ourTurn: () => this.myTeam > 0 && this.teamTurn === this.myTeam,
-    teamMembers: () => [
-      this.players.filter((p) => this.teams[p] === -1), // sin equipo
-      this.players.filter((p) => this.teams[p] === 1), // equipo 1
-      this.players.filter((p) => this.teams[p] === 2), // equipo 2
-    ],
-    currentTeamMembers: (state) =>
-      state.game.running ? this.teamMembers[this.teamTurn] : [],
-    votesLeft: () =>
-      this.currentTeamMembers.length - Object.keys(this.turnData.votes).length,
+    ourTurn() {
+      return this.myTeam > 0 && this.teamTurn === this.myTeam
+    },
+    teamMembers() {
+      return [
+        this.players.filter((p) => this.teams[p] === -1), // sin equipo
+        this.players.filter((p) => this.teams[p] === 1), // equipo 1
+        this.players.filter((p) => this.teams[p] === 2), // equipo 2
+      ]
+    },
+    currentTeamMembers(state) {
+      return state.game.running ? this.teamMembers[this.teamTurn] : []
+    },
+    votesLeft() {
+      return (
+        this.currentTeamMembers.length - Object.keys(this.turnData.votes).length
+      )
+    },
+    canVote() {
+      return this.ourTurn && !this.turnData.votes[this.uid]
+    },
+    myVote() {
+      return this.ourTurn ? this.turnData.votes[this.uid] : undefined
+    },
+    columnVotes(state) {
+      const result = [].fill(0, 0, state.nCols)
+      for (const v in this.turnData.votes) {
+        result[this.turnData.votes[v]] += 1
+      }
+      return result
+    },
+    board(state) {
+      const result = []
+      for (let col = 0; col < state.nCols; ++col) result.push([])
+      for (let t = 0; t <= state.game.turn; ++t) {
+        const selected = state.game.turns[t].selected
+        if (
+          (selected || selected === 0) &&
+          result[selected].length < state.nRows
+        )
+          result[selected].push((t % 2) + 1)
+      }
+      return result
+    },
   },
   actions: {
     subscribe(id) {
       if (this.subscribed && id !== this.gameID) this.unsubscribe()
       if (!this.subscribed) {
+        this.gameID = id
         this.subscribed = onSnapshot(this.gameRef, (doc) => {
           this.game = doc.data()
         })
@@ -88,6 +131,7 @@ export const useGameStore = defineStore('game', {
       if (this.subscribed) {
         this.subscribed()
         this.subscribed = null
+        this.gameID = null
       }
     },
     async addPlayer() {

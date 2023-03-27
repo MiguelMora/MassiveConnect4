@@ -52,7 +52,7 @@ export default {
         to: '/inspire',
       },
       {
-        icon: 'gamepad-variant-outline',
+        icon: 'mdi-gamepad-variant-outline',
         title: 'Games',
         to: '/games',
       },
