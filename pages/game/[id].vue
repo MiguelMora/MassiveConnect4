@@ -3,10 +3,10 @@
     <thead>
       <tr v-if="ourTurn">
         <td v-for="ci in nCols" class="text-center same-width">
-          <v-btn v-if="canVote" icon @click="store.vote(ci)">
+          <v-btn v-if="canVote" icon @click="store.vote(ci-1)">
             <v-icon>mdi-vote</v-icon>
           </v-btn>
-          <v-icon v-if="myVote === ci">mdi-map-marker-check-outline</v-icon>
+          <v-icon v-if="myVote === (ci-1)">mdi-map-marker-check-outline</v-icon>
         </td>
       </tr>
     </thead>
@@ -17,7 +17,7 @@
           class="text-center same-width"
           :class="ci % 2 ? 'bg-grey-lighten-5' : 'bg-grey-lighten-4'"
         >
-          <v-icon v-if="board[(ci, ri)] > 0">mdi-poker-chip></v-icon>
+          <v-icon v-if="board[(ci-1, ri-1)] > 0">mdi-poker-chip></v-icon>
         </td>
       </tr>
     </tbody>

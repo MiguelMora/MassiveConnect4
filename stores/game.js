@@ -27,10 +27,10 @@ export const useGameStore = defineStore('game', {
           changes: {}, // pares idJugador:equipo en el que juega
           // -1 abandona y no puede volver, 0 observador, 1 y 2 equipos
           // datos que cada jugador indica durante el turno
-          votes: {}, // voto de cada jugador al que le toca jugar
+          votes: {}, // voto de cada jugador al que le toca jugar [0..nCols)
           traitors: [], // se añaden los jugadores que quieren cambiar de equipo
           // lo escribe el líder al terminar el turno
-          selected: null, // columna más votada, el líder desempata, y se cierra el turno
+          selected: null, // columna más votada [0..nCols), el líder desempata, y se cierra el turno
         },
       },
       newPlayers: [], // se añaden los jugadores que quieren entrar al juego
@@ -97,9 +97,9 @@ export const useGameStore = defineStore('game', {
       return this.ourTurn ? this.turnData.votes[this.uid] : undefined
     },
     columnVotes(state) {
-      const result = [].fill(0, 0, state.nCols)
-      for (const v in this.turnData.votes) {
-        result[this.turnData.votes[v]] += 1
+      const result = Array(state.nCols).fill(0)
+      for (const v of Object.values(this.turnData.votes)) {
+        result[v] += 1
       }
       return result
     },
