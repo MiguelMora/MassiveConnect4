@@ -14,6 +14,7 @@ export const useGamesStore = defineStore('games', {
   state: () => ({
     subscribed: null, // función para de-subscribirse a la colección
     games: {}, // { id: game }
+    onlyRunning: true,
   }),
   getters: {
     uid: () => {
@@ -30,7 +31,9 @@ export const useGamesStore = defineStore('games', {
     subscribe() {
       if (!this.subscribed) {
         const col = collection(getDb(), 'games')
-        const q = query(col, where('running', '==', true))
+        const q = this.onlyRunning
+          ? query(col, where('running', '==', true))
+          : col
         this.games = {}
         this.subscribed = onSnapshot(q, (snapshot) => {
           snapshot.docChanges().forEach((change) => {
@@ -46,6 +49,13 @@ export const useGamesStore = defineStore('games', {
         })
       }
     },
+    setOnlyRunning(value) {
+      if (this.onlyRunning !== value) {
+        this.unsubscribe()
+        this.onlyRunning = value
+        this.subscribe()
+      }
+    },
     unsubscribe() {
       if (this.subscribed) {
         this.subscribed()
@@ -59,6 +69,7 @@ export const useGamesStore = defineStore('games', {
         created: serverTimestamp(),
         turn: 0,
         running: true,
+        winners: [],
         turns: {
           0: {
             leader: this.uid,
