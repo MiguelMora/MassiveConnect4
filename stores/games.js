@@ -19,8 +19,7 @@ export const useGamesStore = defineStore('games', {
   getters: {
     uid: () => {
       const userStore = useUserStore()
-      const uid = userStore.uid
-      return uid
+      return userStore.uid
     },
     asArray() {
       // incluye el id en el documento, y devuelve el array
@@ -70,6 +69,8 @@ export const useGamesStore = defineStore('games', {
         turn: 0,
         running: true,
         winners: [],
+        winner: 0,
+        newPlayers: [],
         turns: {
           0: {
             leader: this.uid,

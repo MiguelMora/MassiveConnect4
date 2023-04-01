@@ -37,41 +37,43 @@
   </v-form>
 </template>
 
-<script>
-export default {
-  props: {
-    error: {
-      type: String,
-      default: '',
-    },
+<script setup>
+defineProps({
+  error: {
+    type: String,
+    default: '',
   },
-  emits: ['signIn', 'signUp'],
-  data: () => ({
-    valid: false,
-    show: false,
-    email: '',
-    password: '',
-  }),
-  computed: {
-    rules() {
-      return {
-        required: (value) => !!value || 'Required',
-        min: (v) => v.length >= 8 || 'Min 8 characters',
-        email: (v) =>
-          !v ||
-          /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,20})+$/.test(v) ||
-          'Invalid Email',
-      }
-    },
-  },
-  methods: {
-    onSignIn() {
-      this.$emit('signIn', { email: this.email, password: this.password })
-    },
-    onSignUp() {
-      this.$emit('signUp', { email: this.email, password: this.password })
-    },
-  },
+})
+
+const emit = defineEmits(['signIn', 'signUp'])
+
+const valid = ref(false)
+const show = ref(false)
+const email = ref('')
+const password = ref('')
+
+const rules = computed(() => {
+  return {
+    required: (value) => !!value || 'Required',
+    min: (v) => v.length >= 8 || 'Min 8 characters',
+    email: (v) =>
+      !v ||
+      /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,20})+$/.test(v) ||
+      'Invalid Email',
+  }
+})
+
+function onSignIn() {
+  emit('signIn', {
+    email: email.value,
+    password: password.value,
+  })
+}
+function onSignUp() {
+  emit('signUp', {
+    email: email.value,
+    password: password.value,
+  })
 }
 </script>
 
