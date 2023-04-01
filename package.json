@@ -26,11 +26,9 @@
     "@mdi/font": "^7.1.96",
     "@pinia/nuxt": "^0.4.6",
     "firebase": "^9.17.1",
-    "nuxt-vuefire": "^0.1.5",
     "pinia": "^2.0.32",
     "sass": "^1.58.0",
     "vite-plugin-vuetify": "^1.0.2",
-    "vuefire": "^3.0.1",
     "vuetify": "^3.1.4"
   },
   "overrides": {
